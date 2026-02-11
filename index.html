@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ABQ Planner: Final Edition</title>
+    <title>ABQ Planner: Click to Add</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
 
@@ -16,6 +16,7 @@
             --header-text: #ecf0f1;
             --card-bg: #ffffff;
             --accent-color: #3498db;
+            --add-color: #27ae60;
             --delete-color: #e74c3c;
         }
 
@@ -58,6 +59,7 @@
             font-weight: 600;
             cursor: pointer;
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transition: background 0.2s;
         }
         .btn-copy:active { transform: scale(0.95); }
         .btn-copy.copied { background-color: #27ae60; }
@@ -72,8 +74,7 @@
 
         /* --- OPTIONS PANEL (Left/Top) --- */
         .options-panel {
-            width: 40%;
-            min-width: 300px;
+            width: 45%;
             background-color: var(--sidebar-bg);
             border-right: 1px solid #ccc;
             overflow-y: auto;
@@ -102,7 +103,6 @@
 
         .location-pool {
             padding: 8px;
-            min-height: 60px;
         }
 
         /* --- ITINERARY PANEL (Right/Bottom) --- */
@@ -116,17 +116,22 @@
             flex-direction: column;
         }
 
+        .itinerary-header {
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: #555;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
         .itinerary-list {
             flex: 1;
             min-height: 100%;
-            border: 2px dashed #bdc3c7;
-            border-radius: 8px;
-            padding: 10px;
-            background-color: rgba(255, 255, 255, 0.5);
+            padding-bottom: 50px;
         }
         
         .itinerary-list:empty::after {
-            content: "Long press & drag items here!";
+            content: "Tap (+) on items to add them here!";
             display: block;
             text-align: center;
             color: #999;
@@ -145,8 +150,7 @@
             justify-content: space-between;
             align-items: center;
             border-left: 4px solid transparent;
-            touch-action: pan-y;
-            position: relative;
+            transition: transform 0.1s;
         }
 
         .card-content { flex: 1; padding-right: 10px; }
@@ -180,30 +184,58 @@
             flex-shrink: 0;
         }
 
-        /* Delete Button (Hidden by default) */
-        .btn-delete {
-            display: none; /* Hidden in the options pool */
+        /* Add Button (+) */
+        .btn-add {
             width: 32px;
             height: 32px;
             border-radius: 50%;
-            background-color: #fee;
-            color: var(--delete-color);
+            background-color: var(--add-color);
+            color: white;
             border: none;
-            font-size: 1.2rem;
+            font-size: 1.4rem;
             line-height: 1;
             cursor: pointer;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
+            padding-bottom: 2px; /* Visual center adjustment */
         }
+        .btn-add:active { transform: scale(0.9); }
 
-        /* Show delete button ONLY when inside the itinerary list */
-        .itinerary-list .card .btn-delete {
+        /* Delete Button (x) - Only visible in itinerary */
+        .btn-delete {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #ffebee;
+            color: var(--delete-color);
+            border: 1px solid #ffcdd2;
+            font-size: 1.4rem;
+            line-height: 1;
+            cursor: pointer;
             display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding-bottom: 2px;
         }
-        
-        /* Hide map button in itinerary to save space? Optional. 
-           Currently keeping both. */
+        .btn-delete:active { transform: scale(0.9); }
 
+        /* Drag Handle (Only visible in itinerary) */
+        .drag-handle {
+            color: #ccc;
+            margin-right: 8px;
+            cursor: grab;
+            display: none; /* Hidden in options */
+            font-size: 1.2rem;
+        }
+
+        /* Itinerary specific styles */
+        .itinerary-list .card .btn-add { display: none; } /* Hide add in itinerary */
+        .itinerary-list .card .drag-handle { display: block; } /* Show handle in itinerary */
+
+        /* Option list specific styles */
+        .options-panel .btn-delete { display: none; } /* Hide delete in options */
+        
         /* --- MOBILE TWEAKS --- */
         @media (max-width: 768px) {
             .main-container { flex-direction: column; }
@@ -218,7 +250,7 @@
 <header>
     <div class="header-title">
         <h1>ABQ Planner</h1>
-        <div class="subtitle">Hold to Drag</div>
+        <div class="subtitle">Tap (+) to Add</div>
     </div>
     <button class="btn-copy" onclick="copyItinerary()" id="copyBtn">Copy List</button>
 </header>
@@ -239,6 +271,7 @@
     </div>
 
     <div class="itinerary-panel">
+        <div class="itinerary-header">MY ITINERARY (Drag to Reorder)</div>
         <div class="itinerary-list" id="itinerary"></div>
     </div>
 </div>
@@ -258,8 +291,7 @@
             { title: "John B. Robert Dam", desc: "Extractor Pickup", addr: "John B Robert Dam, Albuquerque, NM", type: "bb" },
             { title: "Casa Tranquila", desc: "8820 Horizon Blvd NE", addr: "8820 Horizon Blvd NE, Albuquerque, NM", type: "bb" },
             { title: "To'hajiilee", desc: "Buried Money Site", addr: "To'hajiilee, NM", type: "bb" },
-            { title: "The Candy Lady", desc: "Old Town (Blue Candy)", addr: "424 San Felipe St NW, Albuquerque, NM", type: "bb" },
-            { title: "The Breaking Bad Store", desc: "Highly recommended gift shop", addr: "2047 S Plaza St NW, Albuquerque, NM", type: "bb"}
+            { title: "The Candy Lady", desc: "Old Town (Blue Candy)", addr: "424 San Felipe St NW, Albuquerque, NM", type: "bb" }
         ],
         bcs: [
             { title: "Chuck McGill's House", desc: "1607 San Cristobal Rd SW", addr: "1607 San Cristobal Rd SW, Albuquerque, NM", type: "bcs" },
@@ -291,7 +323,7 @@
         ]
     };
 
-    // --- RENDER ---
+    // --- RENDER FUNCTION ---
     function createCard(item) {
         const div = document.createElement('div');
         div.className = 'card';
@@ -302,56 +334,47 @@
         const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.addr)}`;
 
         div.innerHTML = `
+            <span class="drag-handle">☰</span>
             <div class="card-content">
                 <span class="card-title">${item.title}</span>
                 <p class="card-desc">${item.desc}</p>
             </div>
             <div class="actions">
-                <a href="${mapUrl}" target="_blank" class="btn-map">📍</a>
-                <button class="btn-delete" title="Remove from Itinerary">×</button>
+                <a href="${mapUrl}" target="_blank" class="btn-map" title="Open Map">📍</a>
+                <button class="btn-add" onclick="addToItinerary(this)" title="Add to Itinerary">+</button>
+                <button class="btn-delete" onclick="removeFromItinerary(this)" title="Remove">×</button>
             </div>
         `;
         return div;
     }
 
-    // Populate
+    // Populate Options
     document.getElementById('pool-bb').append(...data.bb.map(createCard));
     document.getElementById('pool-bcs').append(...data.bcs.map(createCard));
     document.getElementById('pool-gems').append(...data.gems.map(createCard));
     document.getElementById('pool-food').append(...data.food.map(createCard));
 
-    // --- DELETE LOGIC (Event Delegation) ---
-    // Handle clicks on the itinerary to remove items
-    document.getElementById('itinerary').addEventListener('click', function(e) {
-        if (e.target.classList.contains('btn-delete')) {
-            // Find the closest card and remove it
-            const card = e.target.closest('.card');
-            if (card) {
-                card.remove();
-            }
-        }
-    });
+    // --- LOGIC ---
+    
+    function addToItinerary(btn) {
+        const originalCard = btn.closest('.card');
+        const itineraryList = document.getElementById('itinerary');
+        
+        // Clone the card
+        const newCard = originalCard.cloneNode(true);
+        
+        // Append to itinerary
+        itineraryList.appendChild(newCard);
+        
+        // Scroll to bottom of itinerary
+        const panel = document.querySelector('.itinerary-panel');
+        panel.scrollTop = panel.scrollHeight;
+    }
 
-    // --- SORTABLE CONFIG ---
-    const sharedConfig = {
-        group: { name: 'trip', pull: 'clone', put: false }, 
-        sort: false,
-        delay: 200, 
-        delayOnTouchOnly: true, 
-        animation: 150,
-        touchStartThreshold: 5 
-    };
-
-    ['pool-bb', 'pool-bcs', 'pool-gems', 'pool-food'].forEach(id => {
-        Sortable.create(document.getElementById(id), sharedConfig);
-    });
-
-    Sortable.create(document.getElementById('itinerary'), {
-        group: 'trip',
-        animation: 150,
-        delay: 200,
-        delayOnTouchOnly: true
-    });
+    function removeFromItinerary(btn) {
+        const card = btn.closest('.card');
+        card.remove();
+    }
 
     // --- COPY FUNCTION ---
     function copyItinerary() {
@@ -384,6 +407,13 @@
             alert("Failed to copy text: " + err);
         });
     }
+
+    // --- REORDERING (Only for Itinerary) ---
+    Sortable.create(document.getElementById('itinerary'), {
+        animation: 150,
+        handle: '.drag-handle', // Only drag by the handle
+        ghostClass: 'sortable-ghost'
+    });
 
 </script>
 
