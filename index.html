@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ABQ Trip Planner: Mobile Ready</title>
+    <title>ABQ Planner: Final Edition</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
 
@@ -15,6 +15,8 @@
             --header-bg: #2c3e50;
             --header-text: #ecf0f1;
             --card-bg: #ffffff;
+            --accent-color: #3498db;
+            --delete-color: #e74c3c;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -34,7 +36,7 @@
         header {
             background-color: var(--header-bg);
             color: var(--header-text);
-            padding: 15px;
+            padding: 12px 15px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -43,9 +45,22 @@
             flex-shrink: 0;
         }
 
-        h1 { margin: 0; font-size: 1.2rem; }
-        .subtitle { font-size: 0.8rem; color: #bdc3c7; margin-top: 2px; }
-        .instructions { font-size: 0.75rem; text-align: right; opacity: 0.9; }
+        .header-title h1 { margin: 0; font-size: 1.1rem; }
+        .header-title .subtitle { font-size: 0.75rem; color: #bdc3c7; margin-top: 2px; }
+
+        .btn-copy {
+            background-color: var(--accent-color);
+            border: none;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .btn-copy:active { transform: scale(0.95); }
+        .btn-copy.copied { background-color: #27ae60; }
 
         /* --- MAIN LAYOUT --- */
         .main-container {
@@ -55,10 +70,10 @@
             overflow: hidden;
         }
 
-        /* --- LEFT PANEL (Source) --- */
+        /* --- OPTIONS PANEL (Left/Top) --- */
         .options-panel {
-            width: 40%; /* Adjusted for mobile split view */
-            min-width: 320px;
+            width: 40%;
+            min-width: 300px;
             background-color: var(--sidebar-bg);
             border-right: 1px solid #ccc;
             overflow-y: auto;
@@ -67,11 +82,12 @@
         }
 
         .category-header {
-            padding: 12px 15px;
-            font-size: 0.9rem;
-            font-weight: 700;
+            padding: 10px 15px;
+            font-size: 0.85rem;
+            font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            background: #f8f9fa;
             border-bottom: 1px solid rgba(0,0,0,0.05);
             margin-top: 0;
             position: sticky;
@@ -79,24 +95,23 @@
             z-index: 10;
         }
 
-        /* Color Coding Headers */
-        .header-bb { background-color: #e8f5e9; color: #2e7d32; border-left: 4px solid #2e7d32; }
-        .header-bcs { background-color: #fffde7; color: #f9a825; border-left: 4px solid #f9a825; }
-        .header-gems { background-color: #fbe9e7; color: #d84315; border-left: 4px solid #d84315; }
-        .header-food { background-color: #fff3e0; color: #ef6c00; border-left: 4px solid #ef6c00; }
+        .header-bb { color: #2e7d32; border-left: 4px solid #2e7d32; }
+        .header-bcs { color: #f9a825; border-left: 4px solid #f9a825; }
+        .header-gems { color: #d84315; border-left: 4px solid #d84315; }
+        .header-food { color: #ef6c00; border-left: 4px solid #ef6c00; }
 
         .location-pool {
-            padding: 10px;
-            min-height: 60px; /* target area size */
+            padding: 8px;
+            min-height: 60px;
         }
 
-        /* --- RIGHT PANEL (Target) --- */
+        /* --- ITINERARY PANEL (Right/Bottom) --- */
         .itinerary-panel {
             flex: 1;
             background-color: var(--bg-color);
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
-            padding: 15px;
+            padding: 10px;
             display: flex;
             flex-direction: column;
         }
@@ -109,15 +124,14 @@
             padding: 10px;
             background-color: rgba(255, 255, 255, 0.5);
         }
-
-        /* When the itinerary is empty, show this text */
+        
         .itinerary-list:empty::after {
-            content: "Drag items here to build your trip!";
+            content: "Long press & drag items here!";
             display: block;
             text-align: center;
             color: #999;
-            margin-top: 20px;
-            font-style: italic;
+            margin-top: 40px;
+            font-weight: 500;
         }
 
         /* --- CARDS --- */
@@ -125,30 +139,31 @@
             background: var(--card-bg);
             border-radius: 8px;
             padding: 12px;
-            margin-bottom: 10px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 8px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
             display: flex;
             justify-content: space-between;
             align-items: center;
             border-left: 4px solid transparent;
-            touch-action: pan-y; /* Important for scroll vs drag */
+            touch-action: pan-y;
             position: relative;
         }
 
-        /* Visual feedback when dragging */
-        .sortable-ghost { opacity: 0.4; background: #eee; }
-        .sortable-drag { cursor: grabbing; transform: scale(1.02); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
-
-        /* Card Content */
         .card-content { flex: 1; padding-right: 10px; }
-        .card-title { font-weight: 700; font-size: 0.95rem; color: #2c3e50; display: block; margin-bottom: 4px; }
-        .card-desc { font-size: 0.85rem; color: #7f8c8d; margin: 0; line-height: 1.3; }
+        .card-title { font-weight: 700; font-size: 0.9rem; color: #2c3e50; display: block; margin-bottom: 2px; }
+        .card-desc { font-size: 0.8rem; color: #7f8c8d; margin: 0; line-height: 1.2; }
 
-        /* Color Coding Cards */
         .card[data-type="bb"] { border-left-color: #2e7d32; }
         .card[data-type="bcs"] { border-left-color: #fbc02d; }
         .card[data-type="gems"] { border-left-color: #d84315; }
         .card[data-type="food"] { border-left-color: #ef6c00; }
+
+        /* BUTTONS */
+        .actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
 
         /* Map Button */
         .btn-map {
@@ -156,73 +171,60 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 36px;
-            height: 36px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
             background-color: #f1f2f6;
             color: #2c3e50;
-            font-size: 1.2rem;
+            font-size: 1rem;
             flex-shrink: 0;
         }
-        
-        /* Tooltip for Desktop (Hover) */
-        @media (hover: hover) {
-            .card:hover::after {
-                content: attr(data-tooltip);
-                position: absolute;
-                bottom: 100%;
-                left: 50%;
-                transform: translateX(-50%);
-                background: #333;
-                color: #fff;
-                padding: 8px;
-                border-radius: 4px;
-                font-size: 0.8rem;
-                width: 200px;
-                pointer-events: none;
-                z-index: 999;
-                white-space: pre-wrap;
-            }
+
+        /* Delete Button (Hidden by default) */
+        .btn-delete {
+            display: none; /* Hidden in the options pool */
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #fee;
+            color: var(--delete-color);
+            border: none;
+            font-size: 1.2rem;
+            line-height: 1;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
         }
 
-        /* --- MOBILE LAYOUT --- */
+        /* Show delete button ONLY when inside the itinerary list */
+        .itinerary-list .card .btn-delete {
+            display: inline-flex;
+        }
+        
+        /* Hide map button in itinerary to save space? Optional. 
+           Currently keeping both. */
+
+        /* --- MOBILE TWEAKS --- */
         @media (max-width: 768px) {
             .main-container { flex-direction: column; }
-            
-            /* Make the top panel (options) smaller so you can see the itinerary */
-            .options-panel { 
-                width: 100%; 
-                height: 40vh; 
-                min-height: 0; 
-                border-right: none; 
-                border-bottom: 2px solid #ddd;
-            }
-            
-            .itinerary-panel { 
-                height: 60vh; 
-            }
-            
-            .category-header { padding: 8px 12px; font-size: 0.8rem; }
-            .card { padding: 10px; margin-bottom: 8px; }
+            .options-panel { width: 100%; height: 45vh; border-right: none; border-bottom: 2px solid #ddd; padding-bottom: 20px;}
+            .itinerary-panel { height: 55vh; }
+            .card { padding: 10px; }
         }
     </style>
 </head>
 <body>
 
 <header>
-    <div>
-        <h1>ABQ Trip Planner</h1>
-        <div class="subtitle">Drag & Drop Enabled</div>
+    <div class="header-title">
+        <h1>ABQ Planner</h1>
+        <div class="subtitle">Hold to Drag</div>
     </div>
-    <div class="instructions">
-        Drag items from <b>Top</b><br>
-        down to <b>Bottom</b> area.
-    </div>
+    <button class="btn-copy" onclick="copyItinerary()" id="copyBtn">Copy List</button>
 </header>
 
 <div class="main-container">
     <div class="options-panel">
-        
         <div class="category-header header-bb">Breaking Bad</div>
         <div class="location-pool" id="pool-bb"></div>
 
@@ -234,69 +236,68 @@
 
         <div class="category-header header-food">Food & Drink</div>
         <div class="location-pool" id="pool-food"></div>
-        
     </div>
 
     <div class="itinerary-panel">
-        <div class="itinerary-list" id="itinerary">
-            </div>
+        <div class="itinerary-list" id="itinerary"></div>
     </div>
 </div>
 
 <script>
-    // --- DATA ---
     const data = {
         bb: [
-            { title: "Walter White's House", desc: "3828 Piermont Dr NE. Respect the owners!", addr: "3828 Piermont Dr NE, Albuquerque, NM", type: "bb" },
-            { title: "Jesse Pinkman's House", desc: "322 16th St SW. The party house.", addr: "322 16th St SW, Albuquerque, NM", type: "bb" },
-            { title: "Jesse & Jane's Apt", desc: "325 Terrace St SE. Duplex.", addr: "325 Terrace St SE, Albuquerque, NM", type: "bb" },
-            { title: "A1A Car Wash", desc: "Mister Car Wash. 9516 Snow Heights Cir NE.", addr: "9516 Snow Heights Cir NE, Albuquerque, NM", type: "bb" },
-            { title: "The Superlab", desc: "Delta Uniform. 1617 Candelaria Rd NE.", addr: "1617 Candelaria Rd NE, Albuquerque, NM", type: "bb" },
-            { title: "Tuco's Hideout", desc: "Java Joe's. 906 Park Ave SW.", addr: "906 Park Ave SW, Albuquerque, NM", type: "bb" },
-            { title: "Crossroads Motel", desc: "1001 Central Ave NE. The 'Crystal Palace'.", addr: "1001 Central Ave NE, Albuquerque, NM", type: "bb" },
-            { title: "Hank & Marie's House", desc: "4901 Cumbre Del Sur Ct NE.", addr: "4901 Cumbre Del Sur Ct NE, Albuquerque, NM", type: "bb" },
-            { title: "Rio Rancho HS", desc: "Walt's School. 301 Loma Colorado Dr NE.", addr: "301 Loma Colorado Dr NE, Rio Rancho, NM", type: "bb" },
-            { title: "John B. Robert Dam", desc: "The 'Extractor' pickup point.", addr: "John B Robert Dam, Albuquerque, NM", type: "bb" },
-            { title: "Casa Tranquila", desc: "Nursing Home. 8820 Horizon Blvd NE.", addr: "8820 Horizon Blvd NE, Albuquerque, NM", type: "bb" },
-            { title: "To'hajiilee", desc: "The buried money & final standoff.", addr: "To'hajiilee, NM", type: "bb" },
-            { title: "The Candy Lady", desc: "Buy the 'Blue Sky' candy props.", addr: "424 San Felipe St NW, Albuquerque, NM", type: "bb" }
+            { title: "Walter White's House", desc: "3828 Piermont Dr NE", addr: "3828 Piermont Dr NE, Albuquerque, NM", type: "bb" },
+            { title: "Jesse Pinkman's House", desc: "322 16th St SW", addr: "322 16th St SW, Albuquerque, NM", type: "bb" },
+            { title: "Jesse & Jane's Apt", desc: "325 Terrace St SE", addr: "325 Terrace St SE, Albuquerque, NM", type: "bb" },
+            { title: "A1A Car Wash", desc: "9516 Snow Heights Cir NE", addr: "9516 Snow Heights Cir NE, Albuquerque, NM", type: "bb" },
+            { title: "The Superlab", desc: "1617 Candelaria Rd NE", addr: "1617 Candelaria Rd NE, Albuquerque, NM", type: "bb" },
+            { title: "Tuco's Hideout", desc: "Java Joe's, 906 Park Ave SW", addr: "906 Park Ave SW, Albuquerque, NM", type: "bb" },
+            { title: "Crossroads Motel", desc: "1001 Central Ave NE", addr: "1001 Central Ave NE, Albuquerque, NM", type: "bb" },
+            { title: "Hank & Marie's House", desc: "4901 Cumbre Del Sur Ct NE", addr: "4901 Cumbre Del Sur Ct NE, Albuquerque, NM", type: "bb" },
+            { title: "Rio Rancho HS", desc: "301 Loma Colorado Dr NE", addr: "301 Loma Colorado Dr NE, Rio Rancho, NM", type: "bb" },
+            { title: "John B. Robert Dam", desc: "Extractor Pickup", addr: "John B Robert Dam, Albuquerque, NM", type: "bb" },
+            { title: "Casa Tranquila", desc: "8820 Horizon Blvd NE", addr: "8820 Horizon Blvd NE, Albuquerque, NM", type: "bb" },
+            { title: "To'hajiilee", desc: "Buried Money Site", addr: "To'hajiilee, NM", type: "bb" },
+            { title: "The Candy Lady", desc: "Old Town (Blue Candy)", addr: "424 San Felipe St NW, Albuquerque, NM", type: "bb" },
+            { title: "The Breaking Bad Store", desc: "Highly recommended gift shop", addr: "2047 S Plaza St NW, Albuquerque, NM", type: "bb"}
         ],
         bcs: [
-            { title: "Chuck McGill's House", desc: "1607 San Cristobal Rd SW.", addr: "1607 San Cristobal Rd SW, Albuquerque, NM", type: "bcs" },
-            { title: "HHM Offices", desc: "100 Sun Ave NE. Pan American Bldg.", addr: "100 Sun Ave NE, Albuquerque, NM", type: "bcs" },
-            { title: "The 'Cinnabon'", desc: "Cottonwood Mall. 10000 Coors Bypass NW.", addr: "10000 Coors Bypass NW, Albuquerque, NM", type: "bcs" },
-            { title: "Saul's Nail Salon", desc: "160 Juan Tabo Blvd NE.", addr: "160 Juan Tabo Blvd NE, Albuquerque, NM", type: "bcs" },
-            { title: "Mike's House", desc: "204 Edith Blvd NE.", addr: "204 Edith Blvd NE, Albuquerque, NM", type: "bcs" },
-            { title: "Los Altos Skate Park", desc: "9930 Lomas Blvd NE. The twins scam.", addr: "9930 Lomas Blvd NE, Albuquerque, NM", type: "bcs" },
-            { title: "Loyola's Family Restaurant", desc: "4500 Central Ave SE. Mike's diner.", addr: "4500 Central Ave SE, Albuquerque, NM", type: "bcs" },
-            { title: "Twisters (Pollos)", desc: "4275 Isleta Blvd SW. Los Pollos Hermanos.", addr: "4275 Isleta Blvd SW, Albuquerque, NM", type: "bcs" }
+            { title: "Chuck McGill's House", desc: "1607 San Cristobal Rd SW", addr: "1607 San Cristobal Rd SW, Albuquerque, NM", type: "bcs" },
+            { title: "HHM Offices", desc: "100 Sun Ave NE", addr: "100 Sun Ave NE, Albuquerque, NM", type: "bcs" },
+            { title: "The 'Cinnabon'", desc: "Cottonwood Mall", addr: "10000 Coors Bypass NW, Albuquerque, NM", type: "bcs" },
+            { title: "Saul's Nail Salon", desc: "160 Juan Tabo Blvd NE", addr: "160 Juan Tabo Blvd NE, Albuquerque, NM", type: "bcs" },
+            { title: "Mike's House", desc: "204 Edith Blvd NE", addr: "204 Edith Blvd NE, Albuquerque, NM", type: "bcs" },
+            { title: "Los Altos Skate Park", desc: "9930 Lomas Blvd NE", addr: "9930 Lomas Blvd NE, Albuquerque, NM", type: "bcs" },
+            { title: "Loyola's Family Restaurant", desc: "4500 Central Ave SE", addr: "4500 Central Ave SE, Albuquerque, NM", type: "bcs" },
+            { title: "Twisters (Pollos)", desc: "4275 Isleta Blvd SW", addr: "4275 Isleta Blvd SW, Albuquerque, NM", type: "bcs" }
         ],
         gems: [
-            { title: "Skate-O-Mania", desc: "400 Paisano St NE. 'Skate-o-matic' rink.", addr: "400 Paisano St NE, Albuquerque, NM", type: "gems" },
-            { title: "Sandia Peak Tram", desc: "World's longest aerial tram ride.", addr: "30 Tramway Rd NE, Albuquerque, NM", type: "gems" },
-            { title: "Balloon Museum", desc: "Anderson Abruzzo Intl Balloon Museum.", addr: "9201 Balloon Museum Dr NE, Albuquerque, NM", type: "gems" },
-            { title: "Old Town Plaza", desc: "Historic center & souvenirs.", addr: "200 N Plaza St NW, Albuquerque, NM", type: "gems" },
-            { title: "Mama's Minerals", desc: "Huge rock/fossil shop.", addr: "2500 12th St NW, Albuquerque, NM", type: "gems" },
-            { title: "Wheels Museum", desc: "Transportation history at Railyards.", addr: "1100 2nd St SW, Albuquerque, NM", type: "gems" },
-            { title: "Vintage Vault", desc: "Vintage shopping in Nob Hill.", addr: "3503 Central Ave NE, Albuquerque, NM", type: "gems" },
-            { title: "Elena Gallegos", desc: "Foothills hiking trails.", addr: "7100 Tramway Blvd NE, Albuquerque, NM", type: "gems" }
+            { title: "Skate-O-Mania", desc: "400 Paisano St NE", addr: "400 Paisano St NE, Albuquerque, NM", type: "gems" },
+            { title: "Sandia Peak Tram", desc: "30 Tramway Rd NE", addr: "30 Tramway Rd NE, Albuquerque, NM", type: "gems" },
+            { title: "Balloon Museum", desc: "9201 Balloon Museum Dr NE", addr: "9201 Balloon Museum Dr NE, Albuquerque, NM", type: "gems" },
+            { title: "Old Town Plaza", desc: "200 N Plaza St NW", addr: "200 N Plaza St NW, Albuquerque, NM", type: "gems" },
+            { title: "Mama's Minerals", desc: "2500 12th St NW", addr: "2500 12th St NW, Albuquerque, NM", type: "gems" },
+            { title: "Wheels Museum", desc: "1100 2nd St SW", addr: "1100 2nd St SW, Albuquerque, NM", type: "gems" },
+            { title: "Vintage Vault", desc: "3503 Central Ave NE", addr: "3503 Central Ave NE, Albuquerque, NM", type: "gems" },
+            { title: "Elena Gallegos", desc: "Foothills Hiking", addr: "7100 Tramway Blvd NE, Albuquerque, NM", type: "gems" }
         ],
         food: [
-            { title: "El Pinto", desc: "Famous patios & New Mexican food.", addr: "10500 4th St NW, Albuquerque, NM", type: "food" },
-            { title: "Frontier Restaurant", desc: "Sweet rolls & late night burritos.", addr: "2400 Central Ave SE, Albuquerque, NM", type: "food" },
-            { title: "Indigo Crow", desc: "Upscale dining in Corrales.", addr: "4515 Corrales Rd, Corrales, NM", type: "food" },
-            { title: "County Line BBQ", desc: "BBQ with panoramic city views.", addr: "9600 Tramway Blvd NE, Albuquerque, NM", type: "food" },
-            { title: "Dog House Drive In", desc: "Chili dogs. Featured in BB & BCS.", addr: "1216 Central Ave NW, Albuquerque, NM", type: "food" },
-            { title: "Flying Star", desc: "Liz and Jeff's usual breakfast spot", addr: "4501 Juan Tabo Blvd NE, Albuquerque, NM", type: "food" }
+            { title: "El Pinto", desc: "10500 4th St NW", addr: "10500 4th St NW, Albuquerque, NM", type: "food" },
+            { title: "Frontier Restaurant", desc: "2400 Central Ave SE", addr: "2400 Central Ave SE, Albuquerque, NM", type: "food" },
+            { title: "Indigo Crow", desc: "4515 Corrales Rd", addr: "4515 Corrales Rd, Corrales, NM", type: "food" },
+            { title: "County Line BBQ", desc: "9600 Tramway Blvd NE", addr: "9600 Tramway Blvd NE, Albuquerque, NM", type: "food" },
+            { title: "Duran's Pharmacy", desc: "1815 Central Ave NW", addr: "1815 Central Ave NW, Albuquerque, NM", type: "food" },
+            { title: "Dog House Drive In", desc: "1216 Central Ave NW", addr: "1216 Central Ave NW, Albuquerque, NM", type: "food" }
         ]
     };
 
-    // --- RENDER CARDS ---
+    // --- RENDER ---
     function createCard(item) {
         const div = document.createElement('div');
         div.className = 'card';
         div.setAttribute('data-type', item.type);
-        div.setAttribute('data-tooltip', `${item.title}\n${item.desc}\n${item.addr}`);
+        div.setAttribute('data-title', item.title);
+        div.setAttribute('data-addr', item.addr);
         
         const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.addr)}`;
 
@@ -305,45 +306,84 @@
                 <span class="card-title">${item.title}</span>
                 <p class="card-desc">${item.desc}</p>
             </div>
-            <a href="${mapUrl}" target="_blank" class="btn-map" title="Open in Maps">📍</a>
+            <div class="actions">
+                <a href="${mapUrl}" target="_blank" class="btn-map">📍</a>
+                <button class="btn-delete" title="Remove from Itinerary">×</button>
+            </div>
         `;
         return div;
     }
 
-    // Initialize Lists
+    // Populate
     document.getElementById('pool-bb').append(...data.bb.map(createCard));
     document.getElementById('pool-bcs').append(...data.bcs.map(createCard));
     document.getElementById('pool-gems').append(...data.gems.map(createCard));
     document.getElementById('pool-food').append(...data.food.map(createCard));
 
-    // --- ENABLE DRAG & DROP (SORTABLE JS) ---
-    // This is the magic part that works on Mobile
-    
-    const sharedGroup = {
-        name: 'trip-planner',
-        pull: true,
-        put: true
+    // --- DELETE LOGIC (Event Delegation) ---
+    // Handle clicks on the itinerary to remove items
+    document.getElementById('itinerary').addEventListener('click', function(e) {
+        if (e.target.classList.contains('btn-delete')) {
+            // Find the closest card and remove it
+            const card = e.target.closest('.card');
+            if (card) {
+                card.remove();
+            }
+        }
+    });
+
+    // --- SORTABLE CONFIG ---
+    const sharedConfig = {
+        group: { name: 'trip', pull: 'clone', put: false }, 
+        sort: false,
+        delay: 200, 
+        delayOnTouchOnly: true, 
+        animation: 150,
+        touchStartThreshold: 5 
     };
 
-    // Initialize all Source Lists
     ['pool-bb', 'pool-bcs', 'pool-gems', 'pool-food'].forEach(id => {
-        Sortable.create(document.getElementById(id), {
-            group: sharedGroup,
-            animation: 150,
-            sort: false, // Don't sort the source lists
-            delay: 0, // No delay for touch
-            fallbackOnBody: true,
-            swapThreshold: 0.65
-        });
+        Sortable.create(document.getElementById(id), sharedConfig);
     });
 
-    // Initialize Target List (Itinerary)
     Sortable.create(document.getElementById('itinerary'), {
-        group: sharedGroup,
+        group: 'trip',
         animation: 150,
-        ghostClass: 'sortable-ghost',
-        dragClass: 'sortable-drag'
+        delay: 200,
+        delayOnTouchOnly: true
     });
+
+    // --- COPY FUNCTION ---
+    function copyItinerary() {
+        const list = document.getElementById('itinerary');
+        const cards = list.querySelectorAll('.card');
+        
+        if (cards.length === 0) {
+            alert("Your itinerary is empty!");
+            return;
+        }
+
+        let text = "My ABQ Trip Itinerary:\n\n";
+        cards.forEach((card, index) => {
+            const title = card.getAttribute('data-title');
+            const addr = card.getAttribute('data-addr');
+            text += `${index + 1}. ${title}\n   ${addr}\n\n`;
+        });
+
+        navigator.clipboard.writeText(text).then(() => {
+            const btn = document.getElementById('copyBtn');
+            const originalText = btn.innerText;
+            btn.innerText = "Copied!";
+            btn.classList.add('copied');
+            
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.classList.remove('copied');
+            }, 2000);
+        }).catch(err => {
+            alert("Failed to copy text: " + err);
+        });
+    }
 
 </script>
 
